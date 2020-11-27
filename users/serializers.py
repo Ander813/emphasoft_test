@@ -23,10 +23,10 @@ class WriteOnlyUserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'password' in validated_data:
             password = validated_data.pop('password')
+            instance.set_password(password)
         for key, value in validated_data.items():
             setattr(instance, key, value)
 
-        instance.set_password(password)
         instance.save()
 
         return instance
