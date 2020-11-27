@@ -66,7 +66,6 @@ class UserTests(APITestCase):
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for data in response.data:
-            print(data, expected_data)
             self.assertEqual(dict(data), expected_data)
 
     def test_user_detail_unauthorized(self):
@@ -84,3 +83,26 @@ class UserTests(APITestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_detail_authorized(self):
+        url = reverse('user_detail', kwargs={'pk': 1})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.put(url, self.test_data_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user = User.objects.get(id=1)
+        self.assertEqual(user.username, self.test_data_user['username'])
+
+        response = self.client.patch(url,
+                                     {'username': 'Test2', 'password': 'Ytrewq321'},
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user = User.objects.get(id=1)
+        self.assertEqual(user.username, 'Test2')
+        self.assertTrue(user.check_password('Ytrewq321'))
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user = User.objects.filter(id=1)
+        self.assertFalse(user)
